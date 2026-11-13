@@ -1,0 +1,84 @@
+name: "Tinyjs Build"
+description: "Just an action to build tinyjs apps"
+author: "LateDreamXD"
+
+inputs:
+  name:
+    description: 'Artifact name, default `tinyjs-app`'
+    required: false
+    default: 'tinyjs-app'
+  publish:
+    description: "Run `tinyjs publish` instead of `tinyjs build`, default is `true`"
+    required: false
+    default: true
+  upload-artifact:
+    description: "Upload built files or not, default is `false`"
+    required: false
+    default: false
+
+outputs:
+  artifact_id:
+    description: "The ID of the artifact that was uploaded."
+    value: ${{ steps.upload-artifact.outputs.artifact-id }}
+
+runs:
+  using: composite
+  steps:
+    - name: Install tinyjs
+      shell: sh
+      if: runner.os == 'Linux'
+      run: |
+        echo ::group::Install tinyjs
+        sudo apt install libwebkit2gtk-4.1-0
+        curl -fsSL https://tinyjs.app/install | sh
+        echo ::endgroup::
+
+    - name: Install tinyjs
+      shell: sh
+      if: runner.os == 'macOS'
+      run: |
+        echo ::group::Install tinyjs
+        curl -fsSL https://tinyjs.app/install | sh
+        echo ::endgroup::
+
+    - name: Install tinyjs
+      shell: pwsh
+      if: runner.os == 'Windows'
+      run: |
+        echo ::group::Install tinyjs
+        # Install WebView2 Runtime (Evergreen)
+        $bootstrapperUrl = "https://go.microsoft.com/fwlink/p/?LinkId=2124703"
+        $installerPath = "$env:TEMP\MicrosoftEdgeWebView2Setup.exe"
+
+        Invoke-WebRequest -Uri $bootstrapperUrl -OutFile $installerPath
+        Start-Process -FilePath $installerPath -ArgumentList "/silent", "/install" -Wait
+
+        # Install tinyjs
+        irm https://tinyjs.app/install.ps1 | iex
+        echo ::endgroup::
+
+    - name: Build
+      shell: sh
+      if: inputs.publish == false
+      run: |
+        echo ::group::Build
+        tinyjs build
+        echo ::endgroup::
+
+    - name: Publish
+      shell: sh
+      if: inputs.publish == true
+      run: |
+        echo ::group::Publish
+        tinyjs publish
+        echo ::endgroup::
+
+    - name: Upload artifact
+      if: inputs.upload-artifact == true
+      id: upload-artifact
+      uses: actions/upload-artifact@v7
+      with:
+        name: ${{ inputs.name }}
+        path: ${{ runner.temp }}/dist
+        retention-days: ${{ inputs.retention-days }}
+        if-no-files-found: error
