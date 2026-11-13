@@ -55,6 +55,9 @@ runs:
 
         # Install tinyjs
         irm https://tinyjs.app/install.ps1 | iex
+
+        # Add tinyjs to GitHub env path
+        Join-Path $env:LOCALAPPDATA 'tinyjs' | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
         echo ::endgroup::
 
     - name: Build
