@@ -29,7 +29,7 @@ runs:
       if: runner.os == 'Linux'
       run: |
         echo ::group::Install tinyjs
-        sudo apt install libwebkit2gtk-4.1-0
+        sudo apt update && sudo apt install libwebkit2gtk-4.1-0
         curl -fsSL https://tinyjs.app/install | sh
         echo ::endgroup::
 
